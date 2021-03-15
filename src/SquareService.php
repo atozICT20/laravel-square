@@ -472,4 +472,61 @@ class SquareService extends CorePaymentService implements SquareServiceContract
 
         return $this;
     }
+
+    /**
+     * Refunds Payment
+     * 
+     * @param array $data
+     *
+     * @return \Nikolag\Square\Models\Transaction
+     * @throws ApiException
+     * @throws Exception on non-2xx response
+     * @throws InvalidSquareAmountException
+     * @throws MissingPropertyException
+     */
+    public function refund(array $data)
+    {
+        $location_id = array_key_exists('location_id', $data) ? $data['location_id'] : null;
+        $currency = array_key_exists('currency', $data) ? $data['currency'] : 'USD';
+        $prepData = [
+            'idempotency_key' => uniqid(),
+            'amount_money'    => [
+                'amount'   => $data['amount'],
+                'currency' => $currency,
+            ],
+            'location_id' => $location_id,
+            'payment_id' => array_key_exists('payment_id', $data) ? (string) $data['payment_id'] : null,
+            'reason' => array_key_exists('reason', $data) ? (string) $data['reason'] : null,
+        ];
+
+        // Location id is now mandatory to know under which Location we are doing a charge on
+        if (!$prepData['location_id']) {
+            throw new MissingPropertyException('Required field \'location_id\' is missing', 500);
+        }
+        if (!$prepData['payment_id']) {
+            throw new MissingPropertyException('Required field \'payment_id\' is missing', 500);
+        }
+
+        $transaction = new Transaction(['status' => Constants::TRANSACTION_STATUS_OPENED, 'amount' => $data['amount'], 'currency' => $currency]);
+        $transaction->save();
+
+        try {
+            $refundPaymentRequest = $this->squareBuilder->buildRefundPaymentRequest($prepData);
+            $response = $this->config->refundsAPI->refundPayment($refundPaymentRequest)->getRefund();
+
+            $transaction->payment_service_id = $response->getId();
+            $transaction->status = Constants::TRANSACTION_STATUS_PASSED;
+            $transaction->save();
+        } catch (ApiException $exception) {
+            $transaction->payment_service_id = null;
+            $transaction->status = Constants::TRANSACTION_STATUS_FAILED;
+            $transaction->save();
+
+            $exception = $this->_handleChargeOrSaveException($exception);
+
+            throw $exception;
+        }
+
+        return $transaction;
+    }
 }

@@ -16,6 +16,7 @@ use SquareConnect\Model\OrderLineItemAppliedDiscount;
 use SquareConnect\Model\OrderLineItemAppliedTax;
 use SquareConnect\Model\OrderLineItemDiscount;
 use SquareConnect\Model\OrderLineItemTax;
+use SquareConnect\Model\RefundPaymentRequest;
 
 class SquareRequestBuilder
 {
@@ -301,5 +302,17 @@ class SquareRequestBuilder
         }
 
         return $temp;
+    }
+
+    /**
+     * Create and return refund request.
+     *
+     * @param array $prepData
+     *
+     * @return \SquareConnect\Model\RefundPaymentRequest
+     */
+    public function buildRefundPaymentRequest(array $prepData)
+    {
+        return new RefundPaymentRequest($prepData);
     }
 }

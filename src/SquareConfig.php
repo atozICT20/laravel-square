@@ -9,6 +9,7 @@ use SquareConnect\Api\LocationsApi;
 use SquareConnect\Api\OrdersApi;
 use SquareConnect\Api\PaymentsApi;
 use SquareConnect\Api\TransactionsApi;
+use SquareConnect\Api\RefundsApi;
 use SquareConnect\ApiClient;
 use SquareConnect\Configuration;
 
@@ -34,6 +35,10 @@ class SquareConfig extends CoreConfig implements ConfigContract
      * @var \SquareConnect\Api\PaymentsApi
      */
     public $paymentsAPI;
+    /**
+     * @var \SquareConnect\Api\RefundsApi
+     */
+    public $refundsAPI;
 
     /**
      * SquareConfig constructor.
@@ -58,6 +63,7 @@ class SquareConfig extends CoreConfig implements ConfigContract
         $this->transactionsAPI = new TransactionsApi($api_client);
         $this->ordersAPI = new OrdersApi($api_client);
         $this->paymentsAPI = new PaymentsApi($api_client);
+        $this->refundsAPI  = new RefundsApi($api_client);
     }
 
     /**
@@ -108,6 +114,16 @@ class SquareConfig extends CoreConfig implements ConfigContract
     public function paymentsAPI()
     {
         return $this->paymentsAPI;
+    }
+
+    /**
+     * Api for refunds.
+     * 
+     * @return RefundsApi
+     */
+    public function refundsAPI()
+    {
+        return $this->refundsAPI;
     }
 
     /**
